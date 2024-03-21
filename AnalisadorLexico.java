@@ -19,6 +19,7 @@ public class AnalisadorLexico {
     public static final int LEFT_PAREN = 25;
     public static final int RIGHT_PAREN = 26;
     public static final int EOF = -1;
+    public static final int SEMI_COLON = 27;
 
     // Variáveis globais
     private int charClass;
@@ -35,6 +36,10 @@ public class AnalisadorLexico {
 
     public int lookup(char ch) {
         switch (ch) {
+            case ';':
+                addChar();
+                nextToken = SEMI_COLON; // Você precisará definir isso como uma constante.
+                break;
             case '(':
                 addChar();
                 nextToken = LEFT_PAREN;
@@ -59,9 +64,14 @@ public class AnalisadorLexico {
                 addChar();
                 nextToken = DIV_OP;
                 break;
+            // Inclua isso no método lookup
+            case '=':
+                addChar();
+                nextToken = ASSIGN_OP;
+                break;
             default:
                 addChar();
-                nextToken = EOF;
+                nextToken = UNKNOWN; // Deve ser UNKNOWN em vez de EOF.
                 break;
         }
         return nextToken;
@@ -70,6 +80,7 @@ public class AnalisadorLexico {
     public void addChar() {
         if (lexLen <= 98) {
             lexeme[lexLen++] = nextChar;
+            lexeme[lexLen] = 0; // Define o próximo caractere do lexeme como o terminador nulo
         } else {
             System.out.println("Error - lexeme is too long");
         }
@@ -98,9 +109,6 @@ public class AnalisadorLexico {
     }
 
     public int lex() throws IOException {
-        for (int i = 0; i < lexeme.length; i++) {
-            lexeme[i] = 0; // Reseta o array lexeme
-        }
         lexLen = 0;
         getNonBlank();
         switch (charClass) {
@@ -133,14 +141,22 @@ public class AnalisadorLexico {
                 lexeme[2] = 'F';
                 lexeme[3] = 0;
                 break;
+            default:
+                break;
         }
-        // Cria uma string a partir do array lexeme e remove os caracteres nulos
-        String s = new String(lexeme).trim().replaceAll("\0", "");
+
+        String s = new String(lexeme, 0, lexLen);
         System.out.println("Next token is: " + nextToken + ", Next lexeme is " + s);
+
+        // Reseta o array lexeme para o próximo lex
+        for (int i = 0; i < lexeme.length; i++) {
+            lexeme[i] = 0;
+        }
+        lexLen = 0; // Reseta o contador de comprimento do lexema
+
         return nextToken;
     }
 
-    // Getters para uso no método main, se necessário
     public int getNextToken() {
         return nextToken;
     }
