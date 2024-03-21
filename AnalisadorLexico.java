@@ -39,7 +39,26 @@ public class AnalisadorLexico {
                 addChar();
                 nextToken = LEFT_PAREN;
                 break;
-            // ... rest of lookup cases ...
+            case ')':
+                addChar();
+                nextToken = RIGHT_PAREN;
+                break;
+            case '+':
+                addChar();
+                nextToken = ADD_OP;
+                break;
+            case '-':
+                addChar();
+                nextToken = SUB_OP;
+                break;
+            case '*':
+                addChar();
+                nextToken = MULT_OP;
+                break;
+            case '/':
+                addChar();
+                nextToken = DIV_OP;
+                break;
             default:
                 addChar();
                 nextToken = EOF;
@@ -79,12 +98,45 @@ public class AnalisadorLexico {
     }
 
     public int lex() throws IOException {
+        for (int i = 0; i < lexeme.length; i++) {
+            lexeme[i] = 0; // Reseta o array lexeme
+        }
         lexLen = 0;
         getNonBlank();
         switch (charClass) {
-            // ... rest of lex method ...
+            case LETTER:
+                addChar();
+                getChar();
+                while (charClass == LETTER || charClass == DIGIT) {
+                    addChar();
+                    getChar();
+                }
+                nextToken = IDENT;
+                break;
+            case DIGIT:
+                addChar();
+                getChar();
+                while (charClass == DIGIT) {
+                    addChar();
+                    getChar();
+                }
+                nextToken = INT_LIT;
+                break;
+            case UNKNOWN:
+                lookup(nextChar);
+                getChar();
+                break;
+            case EOF:
+                nextToken = EOF;
+                lexeme[0] = 'E';
+                lexeme[1] = 'O';
+                lexeme[2] = 'F';
+                lexeme[3] = 0;
+                break;
         }
-        System.out.println("Next token is: " + nextToken + ", Next lexeme is " + String.valueOf(lexeme).trim());
+        // Cria uma string a partir do array lexeme e remove os caracteres nulos
+        String s = new String(lexeme).trim().replaceAll("\0", "");
+        System.out.println("Next token is: " + nextToken + ", Next lexeme is " + s);
         return nextToken;
     }
 
@@ -93,5 +145,4 @@ public class AnalisadorLexico {
         return nextToken;
     }
 
-    // ... possíveis outros getters e setters ...
 }
