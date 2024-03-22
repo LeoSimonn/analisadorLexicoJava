@@ -164,8 +164,7 @@ public class AnalisadorLexico {
 
 
         // Cria uma string a partir do ArrayList lexeme e remove os caracteres nulos
-        String s = lexeme.toString().replaceAll("[\\[\\], ]", "");
-        System.out.println("Next token is: " + nextToken + ", Next lexeme is " + s);
+        System.out.println("Next token is: " + nextToken + ", Next lexeme is " + lexemeStringified());
     }
 
     // Getters para uso no método main, se necessário
@@ -174,7 +173,7 @@ public class AnalisadorLexico {
     }
 
 
-    public String lexemeString() {
+    public String lexemeStringified() {
         StringBuilder lexemeCastedToString = new StringBuilder();
 
         for (Character ch : lexeme) {
