@@ -9,10 +9,11 @@ public class Main {
             BufferedReader reader = new BufferedReader(new FileReader("front.in"));
             AnalisadorLexico analisadorLexico = new AnalisadorLexico(reader);
 
-            analisadorLexico.getChar();
+            // pega o proximo char (o próximo neste caso é o primeiro)
+            analisadorLexico.nextChar();
             do {
-                analisadorLexico.lex();
-            } while (analisadorLexico.getNextToken() != AnalisadorLexico.EOF);
+                analisadorLexico.getNextLexeme();
+            } while (analisadorLexico.getNextToken() != -1);
 
             reader.close();
 

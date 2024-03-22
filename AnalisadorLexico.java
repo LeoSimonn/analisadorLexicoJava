@@ -1,164 +1,186 @@
 import java.io.IOException;
 import java.io.BufferedReader;
+import java.util.ArrayList;
 
 public class AnalisadorLexico {
 
-    // Classes de caracteres
-    public static final int LETTER = 0;
-    public static final int DIGIT = 1;
-    public static final int UNKNOWN = 99;
-
     // Códigos de tokens
     public static final int INT_LIT = 10;
-    public static final int IDENT = 11;
+    public static final int IDENTIFIER = 11;
     public static final int ASSIGN_OP = 20;
     public static final int ADD_OP = 21;
-    public static final int SUB_OP = 22;
-    public static final int MULT_OP = 23;
-    public static final int DIV_OP = 24;
-    public static final int LEFT_PAREN = 25;
-    public static final int RIGHT_PAREN = 26;
-    public static final int EOF = -1;
-    public static final int SEMI_COLON = 27;
+    public static final int SUBTRACTION_OP = 22;
+    public static final int MULTIPLICATION_OP = 23;
+    public static final int DIVISION_OP = 24;
+    public static final int LEFT_PARENTHESIS = 25;
+    public static final int RIGHT_PARENTHESIS = 26;
+    public static final int FOR_PAL = 20;
+    public static final int IF_PAL = 21;
+    public static final int ELSE_PAL = 22;
+    public static final int WHILE_PAL = 23;
+    public static final int DO_PAL = 24;
+    public static final int INT_PAL = 25;
+    public static final int FLOAT_PAL = 26;
+    public static final int SWITCH_PAL = 27;
 
     // Variáveis globais
-    private int charClass;
-    private char[] lexeme = new char[100];
-    private char nextChar;
-    private int lexLen;
-    private int token;
+    private CharacterClass characterClass;
+    private final ArrayList<Character> lexeme = new ArrayList<>();
+    private char currentChar;
     private int nextToken;
-    private BufferedReader in_fp;
+    final private BufferedReader input;
 
     public AnalisadorLexico(BufferedReader reader) {
-        in_fp = reader;
+        input = reader;
     }
 
-    public int lookup(char ch) {
-        switch (ch) {
-            case ';':
-                addChar();
-                nextToken = SEMI_COLON; // Você precisará definir isso como uma constante.
-                break;
+    // Método para checar se um char é palavra reservada é um símbolo
+    public void lookup() {
+        switch (currentChar) {
             case '(':
-                addChar();
-                nextToken = LEFT_PAREN;
+                lexeme.add(currentChar);
+                nextToken = LEFT_PARENTHESIS;
                 break;
             case ')':
-                addChar();
-                nextToken = RIGHT_PAREN;
+                lexeme.add(currentChar);
+                nextToken = RIGHT_PARENTHESIS;
                 break;
             case '+':
-                addChar();
+                lexeme.add(currentChar);
                 nextToken = ADD_OP;
                 break;
             case '-':
-                addChar();
-                nextToken = SUB_OP;
+                lexeme.add(currentChar);
+                nextToken = SUBTRACTION_OP;
                 break;
             case '*':
-                addChar();
-                nextToken = MULT_OP;
+                lexeme.add(currentChar);
+                nextToken = MULTIPLICATION_OP;
                 break;
             case '/':
-                addChar();
-                nextToken = DIV_OP;
-                break;
-            // Inclua isso no método lookup
-            case '=':
-                addChar();
-                nextToken = ASSIGN_OP;
+                lexeme.add(currentChar);
+                nextToken = DIVISION_OP;
                 break;
             default:
-                addChar();
-                nextToken = UNKNOWN; // Deve ser UNKNOWN em vez de EOF.
+                nextToken = -1;
                 break;
         }
-        return nextToken;
     }
 
-    public void addChar() {
-        if (lexLen <= 98) {
-            lexeme[lexLen++] = nextChar;
-            lexeme[lexLen] = 0; // Define o próximo caractere do lexeme como o terminador nulo
-        } else {
-            System.out.println("Error - lexeme is too long");
-        }
-    }
-
-    public void getChar() throws IOException {
-        int readChar = in_fp.read();
-        nextChar = (char) readChar;
+    public void nextChar() throws IOException {
+        int readChar = input.read();
+        currentChar = (char) readChar;
         if (readChar != -1) {
-            if (Character.isLetter(nextChar)) {
-                charClass = LETTER;
-            } else if (Character.isDigit(nextChar)) {
-                charClass = DIGIT;
+            if (Character.isLetter(currentChar)) {
+                characterClass = CharacterClass.LETTER;
+            } else if (Character.isDigit(currentChar)) {
+                characterClass = CharacterClass.DIGIT;
             } else {
-                charClass = UNKNOWN;
+                characterClass = CharacterClass.UNKNOWN;
             }
         } else {
-            charClass = EOF;
+            characterClass = CharacterClass.EOF;
         }
     }
 
     public void getNonBlank() throws IOException {
-        while (Character.isWhitespace(nextChar)) {
-            getChar();
+        while (Character.isWhitespace(currentChar)) {
+            nextChar();
         }
     }
 
-    public int lex() throws IOException {
-        lexLen = 0;
+    public void getNextLexeme() throws IOException {
+        // Limpa o ArrayList lexeme
+        lexeme.clear();
+
         getNonBlank();
-        switch (charClass) {
+        switch (characterClass) {
+
+            // Se começa com letra, automaticamente é um Identificador
             case LETTER:
-                addChar();
-                getChar();
-                while (charClass == LETTER || charClass == DIGIT) {
-                    addChar();
-                    getChar();
+                lexeme.add(currentChar);
+                nextChar();
+
+                while (characterClass == CharacterClass.LETTER || characterClass == CharacterClass.DIGIT) {
+                    lexeme.add(currentChar);
+                    nextChar();
                 }
-                nextToken = IDENT;
+
+                switch (lexemeString()) {
+                    case "for":
+                        nextToken = FOR_PAL;
+                        break;
+
+                    case "if":
+                        nextToken = IF_PAL;
+                        break;
+
+                    case "else":
+                        nextToken = ELSE_PAL;
+                        break;
+
+                    case "while":
+                        nextToken = WHILE_PAL;
+                        break;
+
+                    case "do":
+                        nextToken = DO_PAL;
+                        break;
+
+                    case "switch":
+                        nextToken = SWITCH_PAL;
+                        break;
+
+                    default:
+                        nextToken = IDENTIFIER;
+                }
+
                 break;
+
+            // Se começa com dígito, é um Inteiro
             case DIGIT:
-                addChar();
-                getChar();
-                while (charClass == DIGIT) {
-                    addChar();
-                    getChar();
+                lexeme.add(currentChar);
+                nextChar();
+                while (characterClass == CharacterClass.DIGIT) {
+                    lexeme.add(currentChar);
+                    nextChar();
                 }
                 nextToken = INT_LIT;
                 break;
+
+            // Se é um símbolo ou palavra reservada (unknown), vai no lookup() pra checar qual dos símbolos é
             case UNKNOWN:
-                lookup(nextChar);
-                getChar();
+                lookup();
+                nextChar();
                 break;
+
             case EOF:
-                nextToken = EOF;
-                lexeme[0] = 'E';
-                lexeme[1] = 'O';
-                lexeme[2] = 'F';
-                lexeme[3] = 0;
-                break;
-            default:
+                nextToken = -1;
+                lexeme.add('E');
+                lexeme.add('O');
+                lexeme.add('F');
                 break;
         }
 
-        String s = new String(lexeme, 0, lexLen);
+
+        // Cria uma string a partir do ArrayList lexeme e remove os caracteres nulos
+        String s = lexeme.toString().replaceAll("[\\[\\], ]", "");
         System.out.println("Next token is: " + nextToken + ", Next lexeme is " + s);
-
-        // Reseta o array lexeme para o próximo lex
-        for (int i = 0; i < lexeme.length; i++) {
-            lexeme[i] = 0;
-        }
-        lexLen = 0; // Reseta o contador de comprimento do lexema
-
-        return nextToken;
     }
 
+    // Getters para uso no método main, se necessário
     public int getNextToken() {
         return nextToken;
     }
 
+
+    public String lexemeString() {
+        StringBuilder lexemeCastedToString = new StringBuilder();
+
+        for (Character ch : lexeme) {
+            lexemeCastedToString.append(ch);
+        }
+
+        return lexemeCastedToString.toString();
+    }
 }
