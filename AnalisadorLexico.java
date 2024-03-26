@@ -106,7 +106,7 @@ public class AnalisadorLexico {
                     nextChar();
                 }
 
-                switch (lexemeString()) {
+                switch (lexemeStringified()) {
                     case "for":
                         nextToken = FOR_PAL;
                         break;
@@ -129,6 +129,12 @@ public class AnalisadorLexico {
 
                     case "switch":
                         nextToken = SWITCH_PAL;
+                        break;
+                    case "float":
+                        nextToken = FLOAT_PAL;
+                        break;
+                    case "int":
+                        nextToken = INT_PAL;
                         break;
 
                     default:
