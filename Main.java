@@ -1,3 +1,11 @@
+/*
+* PUCRS - 2024/01
+* Analisador Lexico - Linguagem de Programação - Andreia Konzen 
+*
+* @author Arthur Henrique Henz, Guilherme Azevedo dos Santos, Leonardo Monteiro e Victor Hugo Boeira Leitte 
+*
+*/
+
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
