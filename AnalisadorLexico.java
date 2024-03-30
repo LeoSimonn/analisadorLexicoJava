@@ -5,25 +5,25 @@ import java.util.ArrayList;
 public class AnalisadorLexico {
 
     // Códigos de tokens
-    public static final int INT_LIT = 10;
-    public static final int IDENTIFIER = 11;
-    public static final int ASSIGN_OP = 20;
-    public static final int ADD_OP = 21;
-    public static final int SUBTRACTION_OP = 22;
-    public static final int MULTIPLICATION_OP = 23;
-    public static final int DIVISION_OP = 24;
-    public static final int LEFT_PARENTHESIS = 25;
-    public static final int RIGHT_PARENTHESIS = 26;
-    public static final int FOR_PAL = 20;
-    public static final int IF_PAL = 21;
-    public static final int ELSE_PAL = 22;
-    public static final int WHILE_PAL = 23;
-    public static final int DO_PAL = 24;
-    public static final int INT_PAL = 25;
-    public static final int FLOAT_PAL = 26;
-    public static final int SWITCH_PAL = 27;
+    private static final int INT_LIT = 10;
+    private static final int IDENTIFIER = 11;
+    private static final int ASSIGN_OP = 12;
+    private static final int ADD_OP = 13;
+    private static final int SUBTRACTION_OP = 14;
+    private static final int MULTIPLICATION_OP = 15;
+    private static final int DIVISION_OP = 16;
+    private static final int LEFT_PARENTHESIS = 17;
+    private static final int RIGHT_PARENTHESIS = 18;
+    private static final int FOR_PAL = 20;
+    private static final int IF_PAL = 21;
+    private static final int ELSE_PAL = 22;
+    private static final int WHILE_PAL = 23;
+    private static final int DO_PAL = 24;
+    private static final int INT_PAL = 25;
+    private static final int FLOAT_PAL = 26;
+    private static final int SWITCH_PAL = 27;
 
-    // Variáveis globais
+    // Variáveis auxiliares globais
     private CharacterClass characterClass;
     private final ArrayList<Character> lexeme = new ArrayList<>();
     private char currentChar;
@@ -34,8 +34,8 @@ public class AnalisadorLexico {
         input = reader;
     }
 
-    // Método para checar se um char é palavra reservada é um símbolo
-    public void lookup() {
+    // lookup: método para checar se o char único é um símbolo
+    private void lookup() {
         switch (currentChar) {
             case '(':
                 lexeme.add(currentChar);
@@ -61,12 +61,17 @@ public class AnalisadorLexico {
                 lexeme.add(currentChar);
                 nextToken = DIVISION_OP;
                 break;
+            case '=':
+                lexeme.add(currentChar);
+                nextToken = ASSIGN_OP;
+                break;
             default:
                 nextToken = -1;
                 break;
         }
     }
 
+    // Checa se nextChar é um characterClass de dígito/letra/símbolo(unknown)/end of file
     public void nextChar() throws IOException {
         int readChar = input.read();
         currentChar = (char) readChar;
@@ -83,20 +88,22 @@ public class AnalisadorLexico {
         }
     }
 
-    public void getNonBlank() throws IOException {
+    //pega próximo char não vazio
+    private void getNextNonBlankChar() throws IOException {
         while (Character.isWhitespace(currentChar)) {
             nextChar();
         }
     }
 
+    // Descobre qual é o lexema a partir do characterClass
     public void getNextLexeme() throws IOException {
         // Limpa o ArrayList lexeme
         lexeme.clear();
 
-        getNonBlank();
+        getNextNonBlankChar();
         switch (characterClass) {
 
-            // Se começa com letra, automaticamente é um Identificador
+            // Se começa com letra, automaticamente é um Identificador ou palavra reservada
             case LETTER:
                 lexeme.add(currentChar);
                 nextChar();
@@ -130,9 +137,11 @@ public class AnalisadorLexico {
                     case "switch":
                         nextToken = SWITCH_PAL;
                         break;
+
                     case "float":
                         nextToken = FLOAT_PAL;
                         break;
+
                     case "int":
                         nextToken = INT_PAL;
                         break;
@@ -140,7 +149,6 @@ public class AnalisadorLexico {
                     default:
                         nextToken = IDENTIFIER;
                 }
-
                 break;
 
             // Se começa com dígito, é um Inteiro
@@ -168,18 +176,15 @@ public class AnalisadorLexico {
                 break;
         }
 
-
         // Cria uma string a partir do ArrayList lexeme e remove os caracteres nulos
         System.out.println("Next token is: " + nextToken + ", Next lexeme is " + lexemeStringified());
     }
 
-    // Getters para uso no método main, se necessário
     public int getNextToken() {
         return nextToken;
     }
 
-
-    public String lexemeStringified() {
+    private String lexemeStringified() {
         StringBuilder lexemeCastedToString = new StringBuilder();
 
         for (Character ch : lexeme) {
